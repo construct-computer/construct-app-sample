@@ -1,0 +1,29 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "description": "A simple reference app that demonstrates the Construct App Store MCP protocol.",
+  "author": {
+    "name": "Construct Team"
+  },
+  "entry": "server.ts",
+  "runtime": "deno",
+  "transport": "stdio",
+  "icon": "icon.svg",
+  "permissions": {},
+  "ui": {
+    "type": "static",
+    "entry": "ui/index.html",
+    "width": 480,
+    "height": 520,
+    "minWidth": 360,
+    "minHeight": 400
+  },
+  "categories": ["developer-tools"],
+  "tags": ["example", "hello-world"],
+  "tools": [
+    { "name": "hello", "description": "Say hello to someone" },
+    { "name": "echo", "description": "Echo back the input" },
+    { "name": "timestamp", "description": "Get the current timestamp" }
+  ]
+}

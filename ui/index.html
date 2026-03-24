@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hello World</title>
+  <link rel="stylesheet" href="/api/sdk/construct.css">
+  <script src="/api/sdk/construct.js"></script>
+</head>
+<body>
+  <div class="app">
+    <div class="container fade-in">
+      <div class="icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4,7 10,12 4,17"/>
+          <line x1="12" y1="17" x2="20" y2="17"/>
+        </svg>
+      </div>
+
+      <h1 class="text-gradient mb-xs">Hello World</h1>
+      <p class="text-muted mb-lg">Reference app for the Construct App Store <span class="badge badge-accent">MCP</span></p>
+
+      <div class="card mb-md">
+        <div class="input-group mb-md">
+          <input type="text" data-bind="name" data-enter="greet" placeholder="Enter your name..." />
+          <button class="btn" data-on-click="greet" data-disabled="loading">Greet</button>
+        </div>
+        <div class="result" id="result">Type a name and click Greet!</div>
+      </div>
+
+      <div class="tools">
+        <button class="btn-secondary btn-sm" data-on-click="echo" data-disabled="loading">Echo</button>
+        <button class="btn-secondary btn-sm" data-on-click="timestamp" data-disabled="loading">Timestamp</button>
+      </div>
+
+      <p class="footer">Tools are called via MCP through the Construct bridge.</p>
+    </div>
+  </div>
+
+  <script>
+    construct.app({
+      state: { name: '', loading: false },
+
+      async greet() {
+        var name = this.name.trim() || 'World';
+        this.loading = true;
+        construct.ui.showLoading('result', 'Calling hello tool...');
+        try {
+          var text = await construct.tools.callText('hello', { name: name });
+          construct.ui.showResult('result', text, 'active');
+          construct.ui.setTitle('Hello World \u2014 ' + name);
+        } catch (err) {
+          construct.ui.showResult('result', 'Error: ' + err.message, 'error');
+        }
+        this.loading = false;
+      },
+
+      async echo() {
+        var text = this.name.trim() || 'Hello from the GUI!';
+        this.loading = true;
+        construct.ui.showLoading('result', 'Calling echo tool...');
+        try {
+          var out = await construct.tools.callText('echo', { text: text });
+          construct.ui.showResult('result', 'Echo: ' + out, 'active');
+        } catch (err) {
+          construct.ui.showResult('result', 'Error: ' + err.message, 'error');
+        }
+        this.loading = false;
+      },
+
+      async timestamp() {
+        this.loading = true;
+        construct.ui.showLoading('result', 'Calling timestamp tool...');
+        try {
+          var out = await construct.tools.callText('timestamp', {});
+          construct.ui.showResult('result', out, 'active');
+        } catch (err) {
+          construct.ui.showResult('result', 'Error: ' + err.message, 'error');
+        }
+        this.loading = false;
+      }
+    });
+  </script>
+</body>
+</html>
