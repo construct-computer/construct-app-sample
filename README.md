@@ -160,13 +160,13 @@ construct-app-hello-world/
 └── .gitignore
 ```
 
-## Publish to the App Store
+## Publish to the App Registry
 
 1. Push your app to a public GitHub repo
 2. Fork [construct-computer/app-registry](https://github.com/construct-computer/app-registry)
 3. Add `apps/my-app.json` with your repo URL and commit SHA
 4. Open a pull request — CI validates your manifest and code
-5. Once merged, your app appears in the Construct App Store
+5. Once merged, your app appears in the Construct App Registry
 
 See the full guide at [registry.construct.computer/publish](https://registry.construct.computer/publish).
 
