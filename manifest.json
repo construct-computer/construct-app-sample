@@ -1,6 +1,10 @@
 {
   "name": "DevTools",
   "description": "Developer toolkit — JSON formatter, Base64, hashing, UUID generator, timestamps, and URL encoding.",
+  "author": {
+    "name": "Construct Team",
+    "url": "https://construct.computer"
+  },
   "icon": "icon.png",
   "categories": ["developer-tools"],
   "tags": ["reference", "sample", "developer", "json", "base64", "hash", "uuid"]
