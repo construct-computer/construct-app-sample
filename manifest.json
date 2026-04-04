@@ -1,33 +1,7 @@
 {
-  "id": "devtools",
-  "name": "[SAMPLE] DevTools",
-  "version": "1.0.0",
-  "description": "Reference app for the Construct platform — a developer toolkit demonstrating MCP tools, reactive UI, and the Construct SDK.",
-  "author": {
-    "name": "Construct Team",
-    "url": "https://construct.computer"
-  },
-  "entry": "server.ts",
-  "runtime": "deno",
-  "transport": "stdio",
+  "name": "DevTools",
+  "description": "Developer toolkit — JSON formatter, Base64, hashing, UUID generator, timestamps, and URL encoding.",
   "icon": "icon.png",
-  "permissions": {},
-  "ui": {
-    "type": "static",
-    "entry": "ui/index.html",
-    "width": 560,
-    "height": 620,
-    "minWidth": 420,
-    "minHeight": 500
-  },
   "categories": ["developer-tools"],
-  "tags": ["reference", "sample", "developer", "json", "base64", "hash", "uuid", "tools"],
-  "tools": [
-    { "name": "json_format", "description": "Format, minify, or validate a JSON string" },
-    { "name": "base64", "description": "Encode or decode a Base64 string" },
-    { "name": "hash", "description": "Generate a SHA-256 hash of text" },
-    { "name": "uuid", "description": "Generate one or more v4 UUIDs" },
-    { "name": "timestamp", "description": "Convert between Unix timestamps and ISO dates" },
-    { "name": "url_encode", "description": "URL-encode or decode a string" }
-  ]
+  "tags": ["reference", "sample", "developer", "json", "base64", "hash", "uuid"]
 }

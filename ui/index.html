@@ -5,18 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DevTools</title>
 
-  <!--
-    PATTERN: Load the Construct SDK.
-    construct.css gives you the platform design system (colors, buttons, cards, etc.)
-    construct.js gives you the bridge to call MCP tools and control the window.
-  -->
-  <link rel="stylesheet" href="/api/sdk/construct.css">
-  <script src="/api/sdk/construct.js"></script>
+  <!-- Construct UI SDK — provides design system + bridge to call MCP tools -->
+  <link rel="stylesheet" href="/sdk/construct.css">
+  <script src="/sdk/construct.js"></script>
 
-  <!--
-    App-specific styles. Use CSS variables from construct.css (--c-bg, --c-surface,
-    --c-text, --c-accent, etc.) so your app automatically matches light/dark theme.
-  -->
   <style>
     .tabs { display: flex; gap: 2px; margin-bottom: 16px; background: var(--c-surface); border-radius: var(--c-radius-md); padding: 3px; overflow-x: auto; }
     .tab { padding: 7px 12px; border-radius: var(--c-radius-sm); font-size: 12px; font-weight: 500; color: var(--c-text-muted); cursor: pointer; border: none; background: none; white-space: nowrap; transition: all 0.15s; font-family: var(--c-font); }

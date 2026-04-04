@@ -1,33 +1,21 @@
 /**
- * DevTools — Reference MCP server for the Construct platform.
+ * DevTools — Worker-native MCP server for the Construct platform.
  *
- * This file is a complete, annotated example of how to build an MCP server
- * for the Construct App Store. Copy this structure for your own app.
+ * This is a Cloudflare Worker that speaks MCP (JSON-RPC 2.0 over HTTP POST).
+ * It exports a standard fetch handler — no custom SDK required.
  *
- * How it works:
- *   1. Construct launches this file as a Deno subprocess
- *   2. It reads JSON-RPC 2.0 requests from stdin (one per line)
- *   3. It writes JSON-RPC responses to stdout
- *   4. Three required methods: initialize, tools/list, tools/call
- *
- * The AI assistant and the GUI both call your tools through this same server.
+ * MCP endpoint: POST /mcp
+ * Health check: GET /health
  */
 
-import * as readline from 'node:readline';
-
-// ─── PATTERN: Tool Definitions ───────────────────────────────────────────────
-//
-// Each tool needs: name, description, and inputSchema (JSON Schema).
-// These are returned by the `tools/list` method so Construct knows what
-// your app can do. The AI sees these descriptions when deciding which
-// tool to call, so write them clearly.
+// ── Tool Definitions ────────────────────────────────────────────────────────
 
 const TOOLS = [
   {
     name: 'json_format',
     description: 'Format, minify, or validate a JSON string.',
     inputSchema: {
-      type: 'object' as const,
+      type: 'object',
       properties: {
         json: { type: 'string', description: 'The JSON string to process' },
         mode: { type: 'string', enum: ['format', 'minify', 'validate'], description: 'Operation mode (default: format)' },
@@ -40,7 +28,7 @@ const TOOLS = [
     name: 'base64',
     description: 'Encode or decode a Base64 string.',
     inputSchema: {
-      type: 'object' as const,
+      type: 'object',
       properties: {
         text: { type: 'string', description: 'The text to encode or decode' },
         mode: { type: 'string', enum: ['encode', 'decode'], description: 'Operation mode (default: encode)' },
@@ -50,9 +38,9 @@ const TOOLS = [
   },
   {
     name: 'hash',
-    description: 'Generate a SHA-256 hash of the given text.',
+    description: 'Generate a hash of the given text.',
     inputSchema: {
-      type: 'object' as const,
+      type: 'object',
       properties: {
         text: { type: 'string', description: 'Text to hash' },
         algorithm: { type: 'string', enum: ['SHA-256', 'SHA-1', 'SHA-384', 'SHA-512'], description: 'Hash algorithm (default: SHA-256)' },
@@ -64,7 +52,7 @@ const TOOLS = [
     name: 'uuid',
     description: 'Generate one or more v4 UUIDs.',
     inputSchema: {
-      type: 'object' as const,
+      type: 'object',
       properties: {
         count: { type: 'number', description: 'Number of UUIDs to generate (default: 1, max: 50)' },
       },
@@ -72,11 +60,11 @@ const TOOLS = [
   },
   {
     name: 'timestamp',
-    description: 'Convert between Unix timestamps and ISO 8601 dates. Accepts either a Unix timestamp (seconds or ms) or an ISO date string.',
+    description: 'Convert between Unix timestamps and ISO 8601 dates.',
     inputSchema: {
-      type: 'object' as const,
+      type: 'object',
       properties: {
-        value: { type: 'string', description: 'A Unix timestamp (seconds or ms) or an ISO date string. Omit for current time.' },
+        value: { type: 'string', description: 'A Unix timestamp or ISO date string. Omit for current time.' },
       },
     },
   },
@@ -84,7 +72,7 @@ const TOOLS = [
     name: 'url_encode',
     description: 'URL-encode or decode a string.',
     inputSchema: {
-      type: 'object' as const,
+      type: 'object',
       properties: {
         text: { type: 'string', description: 'The string to encode or decode' },
         mode: { type: 'string', enum: ['encode', 'decode'], description: 'Operation mode (default: encode)' },
@@ -94,13 +82,7 @@ const TOOLS = [
   },
 ];
 
-// ─── PATTERN: Tool Handlers ──────────────────────────────────────────────────
-//
-// Each handler receives the tool arguments and must return:
-//   { content: [{ type: 'text', text: '...' }] }
-//
-// Set isError: true to signal failure. Wrap everything in try/catch —
-// if your tool throws, the user sees a generic error.
+// ── Tool Handlers ───────────────────────────────────────────────────────────
 
 type ToolResult = { content: Array<{ type: string; text: string }>; isError?: boolean };
 
@@ -118,16 +100,14 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
           const keys = typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
             ? Object.keys(parsed).length : 0;
           const items = Array.isArray(parsed) ? parsed.length : 0;
-          let info = `\u2713 Valid JSON (${type})`;
-          if (keys > 0) info += ` \u2014 ${keys} key${keys > 1 ? 's' : ''}`;
-          if (items > 0) info += ` \u2014 ${items} item${items > 1 ? 's' : ''}`;
-          info += `\nSize: ${input.length} chars \u2192 ${JSON.stringify(parsed).length} chars minified`;
+          let info = `✓ Valid JSON (${type})`;
+          if (keys > 0) info += ` — ${keys} key${keys > 1 ? 's' : ''}`;
+          if (items > 0) info += ` — ${items} item${items > 1 ? 's' : ''}`;
+          info += `\nSize: ${input.length} chars → ${JSON.stringify(parsed).length} chars minified`;
           return { content: [{ type: 'text', text: info }] };
         }
 
-        const output = mode === 'minify'
-          ? JSON.stringify(parsed)
-          : JSON.stringify(parsed, null, indent);
+        const output = mode === 'minify' ? JSON.stringify(parsed) : JSON.stringify(parsed, null, indent);
         return { content: [{ type: 'text', text: output }] };
       }
 
@@ -135,9 +115,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         const text = args.text as string;
         const mode = (args.mode as string) || 'encode';
         if (mode === 'decode') {
-          const decoded = new TextDecoder().decode(
-            Uint8Array.from(atob(text), c => c.charCodeAt(0))
-          );
+          const decoded = new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0)));
           return { content: [{ type: 'text', text: decoded }] };
         }
         const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(text)));
@@ -149,8 +127,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         const algorithm = (args.algorithm as string) || 'SHA-256';
         const data = new TextEncoder().encode(text);
         const hashBuffer = await crypto.subtle.digest(algorithm, data);
-        const hex = Array.from(new Uint8Array(hashBuffer))
-          .map(b => b.toString(16).padStart(2, '0')).join('');
+        const hex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
         return { content: [{ type: 'text', text: `${algorithm}: ${hex}` }] };
       }
 
@@ -178,6 +155,17 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         }
         const unixSec = Math.floor(date.getTime() / 1000);
         const unixMs = date.getTime();
+        const now = Date.now();
+        const diff = now - date.getTime();
+        const abs = Math.abs(diff);
+        const suffix = diff >= 0 ? 'ago' : 'from now';
+        let relative = 'just now';
+        if (abs >= 31_536_000_000) relative = `${Math.floor(abs / 31_536_000_000)} years ${suffix}`;
+        else if (abs >= 2_592_000_000) relative = `${Math.floor(abs / 2_592_000_000)} months ${suffix}`;
+        else if (abs >= 86_400_000) relative = `${Math.floor(abs / 86_400_000)} days ${suffix}`;
+        else if (abs >= 3_600_000) relative = `${Math.floor(abs / 3_600_000)} hours ${suffix}`;
+        else if (abs >= 60_000) relative = `${Math.floor(abs / 60_000)} minutes ${suffix}`;
+
         return {
           content: [{
             type: 'text',
@@ -185,8 +173,7 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
               `ISO 8601:    ${date.toISOString()}`,
               `Unix (sec):  ${unixSec}`,
               `Unix (ms):   ${unixMs}`,
-              `UTC:         ${date.toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'full', timeStyle: 'long' })}`,
-              `Relative:    ${getRelativeTime(date)}`,
+              `Relative:    ${relative}`,
             ].join('\n'),
           }],
         };
@@ -203,89 +190,69 @@ async function handleToolCall(name: string, args: Record<string, unknown>): Prom
         return { content: [{ type: 'text', text: `Unknown tool: ${name}` }], isError: true };
     }
   } catch (err) {
-    // PATTERN: Always catch errors and return them as tool results.
-    // Throwing from a handler would crash the server.
     const msg = err instanceof Error ? err.message : String(err);
     return { content: [{ type: 'text', text: `Error: ${msg}` }], isError: true };
   }
 }
 
-function getRelativeTime(date: Date): string {
-  const now = Date.now();
-  const diff = now - date.getTime();
-  const abs = Math.abs(diff);
-  const suffix = diff >= 0 ? 'ago' : 'from now';
-  if (abs < 60_000) return 'just now';
-  if (abs < 3_600_000) return `${Math.floor(abs / 60_000)} minutes ${suffix}`;
-  if (abs < 86_400_000) return `${Math.floor(abs / 3_600_000)} hours ${suffix}`;
-  if (abs < 2_592_000_000) return `${Math.floor(abs / 86_400_000)} days ${suffix}`;
-  if (abs < 31_536_000_000) return `${Math.floor(abs / 2_592_000_000)} months ${suffix}`;
-  return `${Math.floor(abs / 31_536_000_000)} years ${suffix}`;
-}
+// ── MCP JSON-RPC Handler ────────────────────────────────────────────────────
 
-// ─── PATTERN: JSON-RPC Router ────────────────────────────────────────────────
-//
-// Every MCP server must handle these three methods:
-//   initialize  — handshake, return your capabilities
-//   tools/list  — return your tool definitions
-//   tools/call  — execute a tool and return the result
-//
-// Requests without an `id` are notifications — acknowledge silently.
-// Unknown methods should return error code -32601 (Method not found).
-
-async function handleRequest(req: { id?: number; method: string; params?: Record<string, unknown> }): Promise<object | null> {
-  const { id, method, params } = req;
+async function handleMcp(request: Request): Promise<Response> {
+  const rpc = (await request.json()) as { id?: number; method: string; params?: Record<string, unknown> };
 
   // Notifications (no id) — acknowledge silently
-  if (id == null) return null;
+  if (rpc.id == null) return new Response(null, { status: 204 });
 
-  switch (method) {
+  let result: unknown;
+
+  switch (rpc.method) {
     case 'initialize':
-      return {
-        jsonrpc: '2.0',
-        id,
-        result: {
-          protocolVersion: '2024-11-05',
-          capabilities: { tools: {} },
-          serverInfo: { name: 'devtools', version: '1.0.0' },
-        },
+      result = {
+        protocolVersion: '2024-11-05',
+        capabilities: { tools: {} },
+        serverInfo: { name: 'devtools', version: '1.0.0' },
       };
+      break;
 
     case 'tools/list':
-      return { jsonrpc: '2.0', id, result: { tools: TOOLS } };
+      result = { tools: TOOLS };
+      break;
 
     case 'tools/call': {
-      const toolName = (params as { name: string }).name;
-      const toolArgs = (params as { arguments?: Record<string, unknown> }).arguments || {};
-      const result = await handleToolCall(toolName, toolArgs);
-      return { jsonrpc: '2.0', id, result };
+      const params = rpc.params as { name: string; arguments?: Record<string, unknown> };
+      result = await handleToolCall(params.name, params.arguments || {});
+      break;
     }
 
     default:
-      return { jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${method}` } };
+      return Response.json(
+        { jsonrpc: '2.0', id: rpc.id, error: { code: -32601, message: `Method not found: ${rpc.method}` } },
+        { headers: { 'Content-Type': 'application/json' } },
+      );
   }
+
+  return Response.json(
+    { jsonrpc: '2.0', id: rpc.id, result },
+    { headers: { 'Content-Type': 'application/json' } },
+  );
 }
 
-// ─── PATTERN: stdio Main Loop ────────────────────────────────────────────────
-//
-// Read one JSON-RPC request per line from stdin, write responses to stdout.
-// This is the standard transport for Construct apps.
+// ── Worker Entry Point ──────────────────────────────────────────────────────
 
-const rl = readline.createInterface({ input: process.stdin });
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
 
-rl.on('line', async (line: string) => {
-  if (!line.trim()) return;
-  try {
-    const req = JSON.parse(line);
-    const response = await handleRequest(req);
-    if (response) {
-      process.stdout.write(JSON.stringify(response) + '\n');
+    // MCP endpoint
+    if (url.pathname === '/mcp' && request.method === 'POST') {
+      return handleMcp(request);
     }
-  } catch {
-    process.stdout.write(JSON.stringify({
-      jsonrpc: '2.0',
-      id: null,
-      error: { code: -32700, message: 'Parse error' },
-    }) + '\n');
-  }
-});
+
+    // Health check
+    if (url.pathname === '/health') {
+      return new Response('ok');
+    }
+
+    return new Response('Not found', { status: 404 });
+  },
+};
