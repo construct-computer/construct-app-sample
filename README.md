@@ -1,6 +1,22 @@
+[![Construct App](https://img.shields.io/badge/Construct-App-6366f1)](https://construct.computer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 # Construct App: DevTools
 
-This is the official reference app for [Construct](https://construct.computer). It demonstrates the recommended patterns for building a Construct app: registering MCP tools via `ConstructApp`, wiring them to a tabbed GUI, and deploying to Cloudflare Workers. Fork this repo as a starting point for your own app.
+A reference app for [Construct](https://construct.computer) that ships six everyday developer utilities. It demonstrates the recommended pattern for building a Construct app: register MCP tools via `ConstructApp`, wire them to a tabbed GUI, and deploy to Cloudflare Workers. Fork this repo as a starting point for your own app.
+
+## Tools
+
+| Tool | Description |
+|---|---|
+| `json_format` | Format, minify, or validate a JSON string |
+| `base64` | Encode or decode Base64 |
+| `hash` | Generate SHA-1 / SHA-256 / SHA-384 / SHA-512 hashes |
+| `uuid` | Generate one or more v4 UUIDs |
+| `timestamp` | Convert between Unix timestamps and ISO 8601 dates |
+| `url_encode` | URL-encode or decode a string |
+
+Every tool is available to both the AI assistant (via MCP) and the visual GUI.
 
 ## Getting Started
 
@@ -22,7 +38,7 @@ npm run dev
 construct-app-hello-world/
 ├── manifest.json          App metadata — Construct reads this to install your app
 ├── server.ts              MCP server — registers tools using ConstructApp
-├── wrangler.jsonc         Cloudflare Workers config
+├── wrangler.toml          Cloudflare Workers config
 ├── icon.png               App icon (256x256)
 ├── ui/
 │   ├── index.html         GUI — tabbed interface calling tools via the SDK
@@ -31,17 +47,14 @@ construct-app-hello-world/
 └── README.md
 ```
 
-**`manifest.json`** declares your app's name, description, icon, categories, and UI dimensions. Construct reads this when installing your app.
-
-**`server.ts`** is the MCP server. It uses the `ConstructApp` class to register tools with `app.tool(name, { description, parameters, handler })`. Each handler receives the tool arguments and returns a string (or a `ToolResult` for error cases). The file exports the app as the default — Cloudflare Workers calls `.fetch()` on it automatically.
-
-**`ui/index.html`** is the optional GUI. It loads the Construct SDK (`construct.js` + `construct.css`) and calls tools via `construct.tools.callText(name, args)`.
-
-**`ui/construct.d.ts`** provides TypeScript types for the `construct.*` globals injected into the iframe.
+- **`manifest.json`** -- declares your app's name, description, icon, categories, and UI dimensions.
+- **`server.ts`** -- the MCP server. Uses `ConstructApp` to register tools with `app.tool(name, definition)`. Each handler returns a string or a `ToolResult`. Exported as the default for Cloudflare Workers.
+- **`ui/index.html`** -- optional GUI. Loads the Construct SDK (`construct.js` + `construct.css`) and calls tools via `construct.tools.callText(name, args)`.
+- **`ui/construct.d.ts`** -- TypeScript types for the `construct.*` globals injected into the iframe.
 
 ## Adding a New Tool
 
-1. Register the tool in `server.ts`:
+Register the tool in `server.ts`:
 
 ```typescript
 app.tool('my_tool', {
@@ -52,15 +65,14 @@ app.tool('my_tool', {
   },
   handler: async (args) => {
     const input = args.input as string;
-    // Your logic here
     return `Result: ${input}`;
   },
 });
 ```
 
-2. (Optional) Add a UI tab in `ui/index.html` — copy an existing tab's HTML and wire the button to call `construct.tools.callText('my_tool', { ... })`.
+Optionally, add a UI tab in `ui/index.html` -- copy an existing tab's HTML and wire the button to `construct.tools.callText('my_tool', { ... })`.
 
-That's it. The tool is automatically available to both the AI assistant and the GUI.
+The tool is automatically available to both the AI assistant and the GUI.
 
 ## Testing
 
@@ -83,16 +95,18 @@ curl -X POST http://localhost:8787/mcp \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"uuid","arguments":{"count":3}}}'
 ```
 
-To test inside Construct, deploy your app (or use a tunnel like `cloudflared`) and install it via **Install from URL** in the App Registry.
+## Testing in Construct
+
+Deploy your app (or use a tunnel like `cloudflared`) and install it via **Install from URL** in the App Registry. Paste your worker URL, and Construct will read `manifest.json` to register the app.
 
 ## Publishing
 
-Once your app is ready, publish it to the [Construct App Registry](https://github.com/construct-computer/app-registry):
+Publish to the [Construct App Registry](https://registry.construct.computer):
 
 1. Push to a public GitHub repo
 2. Fork `construct-computer/app-registry`
 3. Add your app entry and open a pull request
-4. CI validates your manifest — once merged, your app appears in the registry
+4. CI validates your manifest -- once merged, your app appears in the registry
 
 See the full guide at [registry.construct.computer/publish](https://registry.construct.computer/publish).
 
@@ -112,4 +126,11 @@ The Construct SDK is injected into your app's iframe automatically. Key APIs:
 
 CSS variables (`--c-bg`, `--c-surface`, `--c-text`, etc.) and utility classes (`.btn`, `.btn-secondary`, `.badge`, `.fade-in`) are provided by `construct.css` for theme-aware styling.
 
-Full SDK documentation: [construct.computer/docs/sdk](https://construct.computer/docs/sdk)
+Full SDK docs: [construct.computer/docs/sdk](https://construct.computer/docs/sdk)
+
+## Links
+
+- [App SDK](https://www.npmjs.com/package/@construct-computer/app-sdk)
+- [Create a new app](https://www.npmjs.com/package/@construct-computer/create-construct-app)
+- [App Store](https://registry.construct.computer)
+- [Publishing Guide](https://registry.construct.computer/publish)
