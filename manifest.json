@@ -1,11 +1,10 @@
 {
+  "$schema": "https://registry.construct.computer/schemas/manifest.json",
   "name": "DevTools",
   "description": "Developer toolkit — JSON formatter, Base64, hashing, UUID generator, timestamps, and URL encoding.",
-  "author": {
-    "name": "Construct Team",
-    "url": "https://construct.computer"
-  },
+  "author": { "name": "Construct Team", "url": "https://construct.computer" },
   "icon": "icon.png",
   "categories": ["developer-tools"],
-  "tags": ["reference", "sample", "developer", "json", "base64", "hash", "uuid"]
+  "tags": ["reference", "sample", "developer", "json", "base64", "hash", "uuid"],
+  "ui": { "entry": "ui/index.html", "width": 560, "height": 620 }
 }
