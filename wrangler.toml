@@ -2,3 +2,10 @@
 name = "construct-app-devtools"
 main = "server.ts"
 compatibility_date = "2024-12-01"
+
+# UI static assets — served via ASSETS binding through the Worker (for CORS headers)
+[assets]
+directory = "./ui"
+binding = "ASSETS"
+not_found_handling = "none"
+run_worker_first = ["/*"]

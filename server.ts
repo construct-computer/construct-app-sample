@@ -62,12 +62,23 @@ class ConstructApp {
 
   tool(name: string, definition: ToolDefinition): this { this.tools.set(name, definition); return this; }
 
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env?: Record<string, unknown>): Promise<Response> {
+    const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, x-construct-user, x-construct-auth' };
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
     const url = new URL(request.url);
-    if (url.pathname === '/mcp' && request.method === 'POST') return this.handleMcp(request);
-    if (url.pathname === '/health') return new Response('ok');
-    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, x-construct-user, x-construct-auth' } });
-    return new Response('Not found', { status: 404 });
+    let response: Response;
+    if (url.pathname === '/mcp' && request.method === 'POST') response = await this.handleMcp(request);
+    else if (url.pathname === '/health') response = new Response('ok');
+    else if (env?.ASSETS) {
+      // Serve static UI files from ASSETS binding (wrangler dev serves from ui/ directory)
+      const assets = env.ASSETS as { fetch: typeof fetch };
+      response = await assets.fetch(request);
+    }
+    else response = new Response('Not found', { status: 404 });
+    // Add CORS headers to all responses (required for dev mode from staging.construct.computer)
+    const headers = new Headers(response.headers);
+    for (const [k, v] of Object.entries(corsHeaders)) headers.set(k, v);
+    return new Response(response.body, { status: response.status, headers });
   }
 
   private extractContext(request: Request): RequestContext {
