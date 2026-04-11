@@ -131,7 +131,7 @@ class ConstructApp {
 
 // ── App Setup ───────────────────────────────────────────────────────────────
 
-const app = new ConstructApp({ name: 'devtools', version: '2.0.0' });
+const app = new ConstructApp({ name: 'devtools', version: '0.1.0' });
 
 // ── Tools ───────────────────────────────────────────────────────────────────
 
