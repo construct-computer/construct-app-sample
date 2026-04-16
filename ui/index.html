@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Text Tools</title>
+    <link rel="stylesheet" href="https://registry.construct.computer/sdk/construct.css">
+    <script src="https://registry.construct.computer/sdk/construct.js"></script>
+    <style>
+      h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; }
+      p.subtitle { margin: 0 0 16px; color: var(--c-text-secondary, rgba(228,228,237,0.7)); font-size: 13px; }
+
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        background: var(--c-surface, rgba(255,255,255,0.04));
+        color: var(--c-text, #e4e4ed);
+        border: 1px solid var(--c-border, rgba(255,255,255,0.08));
+        border-radius: var(--c-radius-md, 10px);
+        padding: 10px 12px;
+        font-family: inherit;
+        font-size: 13px;
+        resize: vertical;
+        min-height: 80px;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: var(--c-accent, #6366f1);
+      }
+
+      .group { margin-bottom: 12px; }
+      .group-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--c-text-muted, rgba(228,228,237,0.4));
+        margin-bottom: 6px;
+      }
+      .group-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+
+      button {
+        background: var(--c-surface, rgba(255,255,255,0.04));
+        color: var(--c-text, #e4e4ed);
+        border: 1px solid var(--c-border, rgba(255,255,255,0.08));
+        border-radius: var(--c-radius-sm, 6px);
+        padding: 6px 12px;
+        font-family: inherit;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease;
+      }
+      button:hover {
+        background: var(--c-accent-muted, rgba(99,102,241,0.15));
+        border-color: var(--c-accent, #6366f1);
+      }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .output {
+        background: var(--c-surface, rgba(255,255,255,0.04));
+        border: 1px solid var(--c-border, rgba(255,255,255,0.08));
+        border-radius: var(--c-radius-md, 10px);
+        padding: 12px;
+        font-family: var(--c-font-mono, "SF Mono", ui-monospace, monospace);
+        font-size: 12.5px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        min-height: 48px;
+      }
+      .output.error { color: var(--c-error, #ef4444); }
+      .label { font-size: 12px; color: var(--c-text-secondary, rgba(228,228,237,0.7)); margin-bottom: 6px; }
+    </style>
+</head>
+  <body>
+    <h1>Text Tools</h1>
+    <p class="subtitle">Pick a tool and transform your text.</p>
+
+    <div class="label">Input</div>
+    <textarea id="input" placeholder="Type or paste text here…">Hello, World! 👋</textarea>
+
+    <div class="group">
+      <div class="group-label">Text</div>
+      <div class="group-buttons">
+        <button data-tool="slugify">Slugify</button>
+        <button data-tool="word_count">Word count</button>
+        <button data-tool="reverse">Reverse</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">JSON</div>
+      <div class="group-buttons">
+        <button data-tool="json_format">Format</button>
+        <button data-tool="json_format" data-args='{"mode":"minify"}'>Minify</button>
+        <button data-tool="json_format" data-args='{"mode":"validate"}'>Validate</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Encode / Decode</div>
+      <div class="group-buttons">
+        <button data-tool="base64" data-args='{"mode":"encode"}'>Base64 encode</button>
+        <button data-tool="base64" data-args='{"mode":"decode"}'>Base64 decode</button>
+        <button data-tool="url_encode" data-args='{"mode":"encode"}'>URL encode</button>
+        <button data-tool="url_encode" data-args='{"mode":"decode"}'>URL decode</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Hash</div>
+      <div class="group-buttons">
+        <button data-tool="hash">SHA-256</button>
+        <button data-tool="hash" data-args='{"algorithm":"SHA-1"}'>SHA-1</button>
+        <button data-tool="hash" data-args='{"algorithm":"SHA-384"}'>SHA-384</button>
+        <button data-tool="hash" data-args='{"algorithm":"SHA-512"}'>SHA-512</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Generate</div>
+      <div class="group-buttons">
+        <button data-tool="uuid">UUID</button>
+        <button data-tool="uuid" data-args='{"count":5}'>5 UUIDs</button>
+        <button data-tool="timestamp">Now</button>
+        <button data-tool="timestamp" data-label="parse">Parse timestamp</button>
+      </div>
+    </div>
+
+    <div class="label">Output</div>
+    <div id="output" class="output">—</div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

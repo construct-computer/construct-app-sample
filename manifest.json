@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/construct-computer/app-sdk/main/schemas/manifest.schema.json",
+  "name": "Text Tools",
+  "description": "Handy text utilities — slugify, word count, base64 encode/decode, and string reversal.",
+  "author": {
+    "name": "Construct",
+    "url": "https://github.com/construct-computer"
+  },
+  "owners": ["construct-computer"],
+  "icon": "ui/icon.svg",
+  "categories": ["utilities"],
+  "tags": ["text", "encoding", "example", "demo"],
+  "ui": {
+    "entry": "ui/index.html",
+    "width": 720,
+    "height": 560
+  },
+  "permissions": {
+    "storage": "64KB"
+  }
+}
