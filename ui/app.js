@@ -9,14 +9,17 @@ construct.ready(() => {
   /**
    * @param {string} tool
    * @param {Record<string, unknown>} [extraArgs]
+   * @param {boolean} [skipInput]
    */
-  async function run(tool, extraArgs) {
+  async function run(tool, extraArgs, skipInput) {
     output.classList.remove('error');
     output.textContent = 'Running\u2026';
     try {
-      const args = /** @type {Record<string, unknown>} */ ({ text: input.value, ...extraArgs });
+      const args = /** @type {Record<string, unknown>} */ (
+        skipInput ? { ...(extraArgs ?? {}) } : { text: input.value, ...extraArgs }
+      );
       // For tools that use 'value' instead of 'text', copy the input over
-      if (tool === 'timestamp' && !('value' in (extraArgs ?? {}))) {
+      if (!skipInput && tool === 'timestamp' && !('value' in (extraArgs ?? {}))) {
         args.value = input.value;
       }
       const result = await construct.tools.call(tool, args);
@@ -37,7 +40,8 @@ construct.ready(() => {
       const el = /** @type {HTMLElement} */ (btn);
       const tool = el.dataset.tool;
       const extra = el.dataset.args ? JSON.parse(el.dataset.args) : undefined;
-      if (tool) run(tool, extra);
+      const skipInput = el.dataset.skipInput !== undefined;
+      if (tool) run(tool, extra, skipInput);
     });
   }
 });

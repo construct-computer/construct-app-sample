@@ -1,7 +1,7 @@
 {
-  "$schema": "https://raw.githubusercontent.com/construct-computer/app-sdk/main/schemas/manifest.schema.json",
+  "$schema": "https://registry.construct.computer/schemas/manifest.json",
   "name": "Text Tools",
-  "description": "Handy text utilities — slugify, word count, base64 encode/decode, and string reversal.",
+  "description": "Handy text utilities plus a demo of calling platform tools (notifications, calendar) from an app.",
   "author": {
     "name": "Construct",
     "url": "https://github.com/construct-computer"
@@ -9,13 +9,19 @@
   "owners": ["construct-computer"],
   "icon": "ui/icon.svg",
   "categories": ["utilities"],
-  "tags": ["text", "encoding", "example", "demo"],
+  "tags": ["text", "encoding", "example", "demo", "gateway"],
   "ui": {
     "entry": "ui/index.html",
     "width": 720,
-    "height": 560
+    "height": 640
   },
   "permissions": {
-    "storage": "64KB"
+    "storage": "64KB",
+    "uses": {
+      "tools": [
+        "notify.send",
+        "calendar.list_events"
+      ]
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { ConstructApp } from '@construct-computer/app-sdk';
+import { ConstructApp, ConstructCallError } from '@construct-computer/app-sdk';
 
 const app = new ConstructApp({ name: 'text-tools', version: '0.1.0' });
 
@@ -183,6 +183,84 @@ app.tool('reverse', {
   },
   handler: async (args) => {
     return Array.from(String(args.text ?? '')).reverse().join('');
+  },
+});
+
+// ── Platform-backed tools (via ctx.construct) ──────────────────────────────
+// These demonstrate the app gateway: declare the target tool in
+// manifest.permissions.uses.tools, then call it through ctx.construct.
+// In local dev `ctx.construct` is a stub and every call throws
+// ConstructCallError('no_bridge', ...) — expected until the app is
+// published and reached through the platform.
+
+app.tool('send_notification', {
+  description:
+    'Send a desktop notification to the user via the platform. Routes to the active messaging platform too (Slack / Telegram) when the user is chatting there.',
+  parameters: {
+    title: { type: 'string', description: 'Notification title.' },
+    body: { type: 'string', description: 'Notification body (optional).' },
+    variant: {
+      type: 'string',
+      enum: ['info', 'success', 'error'],
+      description: 'Notification style (default info).',
+    },
+  },
+  handler: async (args, ctx) => {
+    const title = String(args.title ?? '').trim();
+    if (!title) {
+      return { content: [{ type: 'text', text: 'title is required' }], isError: true };
+    }
+    const payload: Record<string, unknown> = { title };
+    if (typeof args.body === 'string' && args.body) payload.body = args.body;
+    if (typeof args.variant === 'string' && args.variant) payload.variant = args.variant;
+
+    try {
+      const result = await ctx.construct.tools.call('notify.send', payload);
+      return result.text || 'Notification sent.';
+    } catch (err) {
+      if (err instanceof ConstructCallError) {
+        return {
+          content: [{ type: 'text', text: `Notification failed (${err.code}): ${err.message}` }],
+          isError: true,
+        };
+      }
+      throw err;
+    }
+  },
+});
+
+app.tool('list_upcoming_events', {
+  description:
+    'List upcoming events from the user\'s primary calendar over the next N days via the platform calendar tool.',
+  parameters: {
+    days: { type: 'number', description: 'Window size in days (default 7, max 30).' },
+    max_results: { type: 'number', description: 'Max events to return (default 10, max 50).' },
+  },
+  handler: async (args, ctx) => {
+    const days = Math.max(1, Math.min(30, Number(args.days ?? 7)));
+    const maxResults = Math.max(1, Math.min(50, Number(args.max_results ?? 10)));
+    const now = new Date();
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+    try {
+      const result = await ctx.construct.tools.call('calendar.list_events', {
+        time_min: now.toISOString(),
+        time_max: end.toISOString(),
+        max_results: maxResults,
+      });
+      return result.text || JSON.stringify(result.data);
+    } catch (err) {
+      if (err instanceof ConstructCallError) {
+        const hint = err.code === 'not_connected'
+          ? ' Ask the user to connect their calendar in the App Registry.'
+          : '';
+        return {
+          content: [{ type: 'text', text: `Calendar call failed (${err.code}): ${err.message}${hint}` }],
+          isError: true,
+        };
+      }
+      throw err;
+    }
   },
 });
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Text Tools</title>
+    <title>Sample App</title>
     <link rel="stylesheet" href="/sdk/construct.css">
     <script src="/sdk/construct.js"></script>
     <style>
@@ -72,8 +72,8 @@
     </style>
 </head>
   <body>
-    <h1>Text Tools</h1>
-    <p class="subtitle">Pick a tool and transform your text.</p>
+    <h1>Sample App</h1>
+    <p class="subtitle">Text utilities plus a live demo of calling platform tools.</p>
 
     <div class="label">Input</div>
     <textarea id="input" placeholder="Type or paste text here…">Hello, World! 👋</textarea>
@@ -123,6 +123,36 @@
         <button data-tool="uuid" data-args='{"count":5}'>5 UUIDs</button>
         <button data-tool="timestamp">Now</button>
         <button data-tool="timestamp" data-label="parse">Parse timestamp</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-label">Platform (via ctx.construct)</div>
+      <div class="group-buttons">
+        <button
+          data-tool="send_notification"
+          data-args='{"title":"Hello from Text Tools","body":"This notification was sent via the platform.","variant":"info"}'
+          data-skip-input>
+          Send test notification
+        </button>
+        <button
+          data-tool="send_notification"
+          data-args='{"title":"All set","body":"Your task finished successfully.","variant":"success"}'
+          data-skip-input>
+          Success notification
+        </button>
+        <button
+          data-tool="list_upcoming_events"
+          data-args='{"days":7,"max_results":5}'
+          data-skip-input>
+          Upcoming events (7d)
+        </button>
+        <button
+          data-tool="list_upcoming_events"
+          data-args='{"days":1,"max_results":10}'
+          data-skip-input>
+          Today
+        </button>
       </div>
     </div>
 
