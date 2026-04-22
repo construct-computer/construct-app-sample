@@ -1,4 +1,4 @@
-name = "construct-app-text-tools"
+name = "aegis-app"
 main = "server.ts"
 compatibility_date = "2024-12-01"
 
@@ -7,3 +7,11 @@ directory = "./ui"
 binding = "ASSETS"
 not_found_handling = "none"
 run_worker_first = ["/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aegis-tickets"
+database_id = "ba933637-7892-4e70-8f09-2aa76ebabf42"
+
+[triggers]
+crons = ["0 * * * *"]

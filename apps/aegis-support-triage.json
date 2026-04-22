@@ -1,0 +1,11 @@
+{
+  "repo": "https://github.com/shubhamvelip4/aegis-app",
+  "description": "Autonomous Slack support triage agent — classifies messages, creates Notion tickets, escalates P0/P1 to on-call, and flags 24h unresolved tickets. Zero human intervention required.",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "commit": "264bbff07523d5ed63a7fdeab231e6d0b10ba436",
+      "date": "2026-04-22"
+    }
+  ]
+}

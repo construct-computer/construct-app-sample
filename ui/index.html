@@ -1,164 +1,1265 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sample App</title>
-    <link rel="stylesheet" href="/sdk/construct.css">
-    <script src="/sdk/construct.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS | Autonomous Support Operations Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
-      h1 { margin: 0 0 4px; font-size: 20px; font-weight: 600; }
-      p.subtitle { margin: 0 0 16px; color: var(--c-text-secondary, rgba(228,228,237,0.7)); font-size: 13px; }
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-hover: #181825;
+            --border: rgba(255, 255, 255, 0.08);
+            --accent: #4F6EF7;
+            --accent-glow: rgba(79, 110, 247, 0.25);
+            
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            
+            --p0: #ef4444;
+            --p1: #f97316;
+            --p2: #f59e0b;
+            --p3: #64748b;
+            
+            --cat-bug: #ef4444;
+            --cat-query: #3b82f6;
+            --cat-feature: #a855f7;
+            --cat-billing: #f59e0b;
+            
+            --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
 
-      textarea {
-        width: 100%;
-        box-sizing: border-box;
-        background: var(--c-surface, rgba(255,255,255,0.04));
-        color: var(--c-text, #e4e4ed);
-        border: 1px solid var(--c-border, rgba(255,255,255,0.08));
-        border-radius: var(--c-radius-md, 10px);
-        padding: 10px 12px;
-        font-family: inherit;
-        font-size: 13px;
-        resize: vertical;
-        min-height: 80px;
-      }
-      textarea:focus {
-        outline: none;
-        border-color: var(--c-accent, #6366f1);
-      }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0px var(--accent-glow); }
+            70% { box-shadow: 0 0 0 12px rgba(79, 110, 247, 0); }
+            100% { box-shadow: 0 0 0 0px rgba(79, 110, 247, 0); }
+        }
 
-      .group { margin-bottom: 12px; }
-      .group-label {
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--c-text-muted, rgba(228,228,237,0.4));
-        margin-bottom: 6px;
-      }
-      .group-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-      button {
-        background: var(--c-surface, rgba(255,255,255,0.04));
-        color: var(--c-text, #e4e4ed);
-        border: 1px solid var(--c-border, rgba(255,255,255,0.08));
-        border-radius: var(--c-radius-sm, 6px);
-        padding: 6px 12px;
-        font-family: inherit;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background 120ms ease, border-color 120ms ease;
-      }
-      button:hover {
-        background: var(--c-accent-muted, rgba(99,102,241,0.15));
-        border-color: var(--c-accent, #6366f1);
-      }
-      button:disabled { opacity: 0.5; cursor: not-allowed; }
+        @keyframes fill-bar {
+            from { width: 0; }
+            to { width: var(--final-width); }
+        }
 
-      .output {
-        background: var(--c-surface, rgba(255,255,255,0.04));
-        border: 1px solid var(--c-border, rgba(255,255,255,0.08));
-        border-radius: var(--c-radius-md, 10px);
-        padding: 12px;
-        font-family: var(--c-font-mono, "SF Mono", ui-monospace, monospace);
-        font-size: 12.5px;
-        white-space: pre-wrap;
-        word-break: break-word;
-        min-height: 48px;
-      }
-      .output.error { color: var(--c-error, #ef4444); }
-      .label { font-size: 12px; color: var(--c-text-secondary, rgba(228,228,237,0.7)); margin-bottom: 6px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #f1f5f9;
+            font-family: var(--font-main);
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(79, 110, 247, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(168, 85, 247, 0.03) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        /* --- Custom Scrollbar --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #1e1e2d; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2d2d3f; }
+
+        /* --- Layout --- */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo svg { stroke: #fff; }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        /* --- Common Elements --- */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover { border-color: rgba(255, 255, 255, 0.12); }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        /* --- Pipeline Rail --- */
+        .pipeline-wrapper {
+            padding: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .pipeline-rail {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            min-width: 1000px;
+            padding: 0 1rem;
+        }
+
+        .pipeline-rail::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 2rem;
+            right: 2rem;
+            height: 2px;
+            background: #1e1e2d;
+            z-index: 1;
+        }
+
+        .pipeline-step {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .step-node {
+            width: 40px;
+            height: 40px;
+            background: var(--bg);
+            border: 2px solid #1e1e2d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #475569;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: var(--font-mono);
+        }
+
+        .step-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .pipeline-step.active .step-node {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+            animation: pulse-ring 2s infinite;
+        }
+
+        .pipeline-step.complete .step-node {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .pipeline-step.complete .step-label { color: var(--success); }
+
+        /* --- Input Zone --- */
+        .input-row {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            background: #07070a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            color: #fff;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            resize: none;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #0a0a0f;
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .input-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .btn-run {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-run:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px var(--accent-glow);
+            filter: brightness(1.1);
+        }
+
+        .btn-run:disabled {
+            background: #1e1e2d;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
+        /* --- Work Area --- */
+        .work-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* --- Ticket Display --- */
+        .ticket-view {
+            border-top: 4px solid var(--p2);
+            animation: slide-up 0.5s ease-out;
+        }
+
+        .tkt-id { font-family: var(--font-mono); color: var(--accent); font-weight: 700; }
+        .tkt-title { font-size: 1.125rem; font-weight: 700; margin: 0.75rem 0; color: #fff; }
+        .tkt-body { color: #94a3b8; font-size: 0.9rem; margin-bottom: 2rem; min-height: 60px; }
+
+        .sla-box {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .sla-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            color: #64748b;
+        }
+
+        .sla-bar-bg { height: 6px; background: #1e1e2d; border-radius: 3px; overflow: hidden; }
+        .sla-bar-fill { height: 100%; background: var(--success); width: 100%; transition: width 1s linear; }
+
+        /* --- Slack Message --- */
+        .slack-bubble {
+            display: flex;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: #171721;
+            border-radius: 12px;
+            animation: slide-up 0.6s ease-out;
+        }
+
+        .slack-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .slack-content { flex: 1; }
+        .slack-user { font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
+        .bot-tag { background: #334155; font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; color: #cbd5e1; }
+        .slack-txt { color: #cbd5e1; white-space: pre-wrap; font-size: 0.93rem; }
+
+        /* --- Debug Section --- */
+        .debug-panel {
+            margin-top: 1.5rem;
+            background: rgba(168, 85, 247, 0.03);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            animation: slide-up 0.7s ease-out;
+        }
+
+        .debug-title { color: var(--cat-feature); font-weight: 700; font-size: 0.8rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+        /* --- Dashboard --- */
+        .dash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2rem; }
+        .stat-card { text-align: center; background: #0f0f15; padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); }
+        .stat-num { font-size: 2rem; font-weight: 800; color: var(--accent); display: block; }
+        .stat-txt { font-size: 0.65rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
+
+        /* --- Animations & Utilities --- */
+        .hidden { display: none !important; }
+        .pulse { animation: pulse-ring 2s infinite; }
+
+        /* ========== DUAL CHAT SYSTEM ========== */
+        @keyframes typing-bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+        @keyframes chat-pop { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+        .chat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .chat-pane {
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            min-height: 480px;
+            max-height: 480px;
+        }
+
+        .chat-pane.user-pane { border-right: 1px solid var(--border); }
+
+        .chat-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .chat-header-user { border-left: 3px solid var(--accent); }
+        .chat-header-dev  { border-left: 3px solid var(--success); }
+
+        .chat-header-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+
+        .chat-pill {
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .pill-live { background: rgba(34,197,94,0.15); color: var(--success); }
+        .pill-esc  { background: rgba(239,68,68,0.15); color: var(--error); }
+        .pill-idle { background: rgba(255,255,255,0.05); color: #64748b; }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .chat-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            color: #334155;
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .msg-row {
+            display: flex;
+            gap: 0.6rem;
+            align-items: flex-end;
+            animation: chat-pop 0.25s ease-out;
+        }
+
+        .msg-row.mine { flex-direction: row-reverse; }
+
+        .msg-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            color: white;
+        }
+
+        .avatar-aegis-user { background: var(--accent); }
+        .avatar-aegis-dev  { background: var(--success); }
+        .avatar-user  { background: #334155; }
+        .avatar-dev   { background: #1e3a2a; color: var(--success); }
+
+        .msg-bubble {
+            max-width: 78%;
+            padding: 0.6rem 0.9rem;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .bubble-aegis-user {
+            background: #1a1a2e;
+            color: #cbd5e1;
+            border-radius: 12px 12px 12px 2px;
+        }
+
+        .bubble-aegis-dev {
+            background: #0d1a12;
+            color: #a7f3d0;
+            border-radius: 12px 12px 12px 2px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+
+        .bubble-user {
+            background: var(--accent);
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+        }
+
+        .bubble-dev {
+            background: #1e2a3e;
+            color: #e2e8f0;
+            border-radius: 12px 12px 2px 12px;
+        }
+
+        .bubble-aegis-dev code, .bubble-aegis-dev pre {
+            display: block;
+            background: #0a0f0a;
+            border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-top: 0.4rem;
+            font-size: 0.7rem;
+            white-space: pre;
+            overflow-x: auto;
+            color: #4ade80;
+        }
+
+        .msg-ts {
+            font-size: 0.6rem;
+            color: #334155;
+            margin-top: 0.2rem;
+            text-align: right;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem 0.75rem;
+            background: #1a1a2e;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: typing-bounce 1.2s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+        .typing-dot-dev { background: var(--success); }
+
+        .chat-input-row {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            color: #fff;
+            font-family: var(--font-main);
+            font-size: 0.82rem;
+            min-height: 36px;
+            max-height: 36px;
+            resize: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus { outline: none; border-color: var(--accent); }
+        .chat-input.dev-input:focus { border-color: var(--success); }
+
+        .chat-send {
+            background: var(--accent);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 0.9rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .chat-send:hover { filter: brightness(1.15); }
+        .chat-send.dev-send { background: var(--success); color: #0a1a0f; }
+        .chat-send:disabled { background: #1e1e2d; color: #475569; cursor: not-allowed; }
+
+        .sentiment-badge {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .sent-positive { background: rgba(34,197,94,0.15); color: var(--success); }
+        .sent-neutral  { background: rgba(255,255,255,0.05); color: #64748b; }
+        .sent-frustrated { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .sent-angry { background: rgba(239,68,68,0.15); color: var(--error); }
+
+        .slash-hint {
+            font-size: 0.65rem;
+            color: #334155;
+            padding: 0.25rem 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .chat-grid { grid-template-columns: 1fr; }
+            .chat-pane.user-pane { border-right: none; border-bottom: 1px solid var(--border); }
+        }
+
     </style>
 </head>
-  <body>
-    <h1>Sample App</h1>
-    <p class="subtitle">Text utilities plus a live demo of calling platform tools.</p>
+<body>
 
-    <div class="label">Input</div>
-    <textarea id="input" placeholder="Type or paste text here…">Hello, World! 👋</textarea>
+    <header>
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke-width="2"/>
+                <path d="M8 12L11 15L16 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            AEGIS
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem">
+            <span style="font-size:0.75rem; color:#64748b; font-weight:600">v2.4.0-AUTO</span>
+            <div style="width:8px; height:8px; background:var(--success); border-radius:50%; box-shadow:0 0 8px var(--success)"></div>
+        </div>
+    </header>
 
-    <div class="group">
-      <div class="group-label">Text</div>
-      <div class="group-buttons">
-        <button data-tool="slugify">Slugify</button>
-        <button data-tool="word_count">Word count</button>
-        <button data-tool="reverse">Reverse</button>
-      </div>
+    <div class="container">
+        
+
+
+        <!-- Input Zone -->
+        <section class="card">
+            <div class="section-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Primary Support Ingest
+            </div>
+            <div class="input-row">
+                <textarea id="main-input" placeholder="Paste raw Slack message here...">Hey AEGIS, I'm experiencing a complete outage on the production dashboard. None of our users can log in, and we're seeing 502 errors everywhere. This is extremely urgent!</textarea>
+                <div class="input-meta">
+                    <div style="display:flex; gap:1.5rem">
+                        <span>CHANNEL: <b style="color:#fff">#support-general</b></span>
+                        <span>USER: <b style="color:#fff">U_DEMO_99</b></span>
+                        <span>STAMP: <b id="live-stamp" style="color:#fff"></b></span>
+                    </div>
+                    <button class="btn-run" id="btn-run">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        RUN AEGIS PIPELINE
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pipeline Rail -->
+        <section class="card pipeline-wrapper">
+            <div class="pipeline-rail" id="pipeline-rail">
+                <div class="pipeline-step" data-id="1"><div class="step-node">01</div><div class="step-label">Ingest</div></div>
+                <div class="pipeline-step" data-id="2"><div class="step-node">02</div><div class="step-label">Dedupe</div></div>
+                <div class="pipeline-step" data-id="3"><div class="step-node">03</div><div class="step-label">Classify</div></div>
+                <div class="pipeline-step" data-id="4"><div class="step-node">04</div><div class="step-label">Ticket</div></div>
+                <div class="pipeline-step" data-id="5"><div class="step-node">05</div><div class="step-label">RAG Reply</div></div>
+                <div class="pipeline-step" data-id="6"><div class="step-node">06</div><div class="step-label">Escalate</div></div>
+                <div class="pipeline-step" data-id="7"><div class="step-node">07</div><div class="step-label">Warp Debug</div></div>
+                <div class="pipeline-step" data-id="8"><div class="step-node">08</div><div class="step-label">KB Update</div></div>
+                <div class="pipeline-step" data-id="9"><div class="step-node">09</div><div class="step-label">Insights</div></div>
+            </div>
+        </section>
+
+        <!-- Main Work Area -->
+        <div class="work-grid hidden" id="work-grid">
+            
+            <div class="card ticket-view" id="tkt-box">
+                <div style="display:flex; justify-content:space-between; align-items:start">
+                    <span class="tkt-id" id="tkt-id">TKT-XXXX</span>
+                    <span class="badge" id="pri-badge" style="background:rgba(239,68,68,0.1); color:var(--error); border:1px solid rgba(239,68,68,0.3)">P0</span>
+                </div>
+                <h2 class="tkt-title" id="tkt-title">System Ingestion...</h2>
+                <div style="display:flex; gap:0.5rem; margin-bottom:1.25rem">
+                    <span class="badge" id="cat-badge" style="background:rgba(59,130,246,0.1); color:var(--cat-query); border:1px solid rgba(59,130,246,0.2)">BUG</span>
+                    <span class="badge" id="stat-badge" style="background:#1e1e2d; color:#64748b">OPEN</span>
+                </div>
+                <p class="tkt-body" id="tkt-body">AI is processing metadata...</p>
+                
+                <div class="sla-box">
+                    <div class="sla-header"><span>SLA Countdown</span> <span id="sla-countdown">--:--:--</span></div>
+                    <div class="sla-bar-bg"><div class="sla-bar-fill" id="sla-fill"></div></div>
+                </div>
+
+                <div id="escalation-alert" class="hidden" style="margin-top:1rem; padding:0.75rem; background:rgba(239,68,68,0.1); border:1px solid var(--error); border-radius:6px; color:var(--error); font-size:0.75rem; font-weight:700; display:flex; align-items:center; gap:0.5rem">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    ESCALATED TO LEVEL 3 (ENG LEADS)
+                </div>
+
+                <button class="btn-run" id="btn-resolve" style="width:100%; margin-top:1.5rem; background:var(--success); display:none">
+                    MARK RESOLVED & UPDATE KB
+                </button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:2rem">
+                <div class="slack-bubble hidden" id="reply-bubble">
+                    <div class="slack-icon">AE</div>
+                    <div class="slack-content">
+                        <div class="slack-user">AEGIS Bot <span class="bot-tag">APP</span> <span style="margin-left:auto; font-weight:400; color:#475569; font-size:0.7rem">Just now</span></div>
+                        <div class="slack-txt" id="reply-txt">Generating autonomous response...</div>
+                        <div id="reply-meta" style="margin-top:0.75rem; display:flex; gap:0.5rem"></div>
+                    </div>
+                </div>
+
+                <div class="card debug-panel hidden" id="debug-panel">
+                    <div class="debug-title">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        Warp-Speed Debug Snapshot
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem">
+                        <div>
+                            <div style="font-size:0.65rem; font-weight:800; color:#475569; text-transform:uppercase; margin-bottom:0.4rem">Probable Cause (Inference)</div>
+                            <div class="slack-txt" id="debug-cause" style="font-size:0.8rem">...</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.65rem; font-weight:800; color:#475569; text-transform:uppercase; margin-bottom:0.4rem">Recommended Steps</div>
+                            <ul id="debug-steps" style="font-size:0.8rem; padding-left:1rem; color:#94a3b8"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DUAL CHAT ZONE -->
+        <div id="chat-zone">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem">
+                <div style="font-size:0.8rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.1em">Live Support Channels</div>
+                <div id="chat-ticket-tag" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--accent); background:rgba(79,110,247,0.08); padding:0.15rem 0.5rem; border-radius:4px"></div>
+            </div>
+            <div class="chat-grid">
+
+                <!-- USER CHAT -->
+                <div class="chat-pane user-pane">
+                    <div class="chat-header chat-header-user">
+                        <span style="font-size:1rem">💬</span>
+                        <span class="chat-header-title">User Chat</span>
+                        <span class="chat-pill pill-idle" id="user-chat-pill">Standby</span>
+                        <span id="user-sentiment-badge"></span>
+                    </div>
+                    <div class="chat-messages" id="user-messages">
+                        <div class="chat-placeholder" id="user-placeholder">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/><path d="M8 12L11 15L16 10" stroke="#334155" stroke-width="2" stroke-linecap="round"/></svg>
+                            <div>AEGIS is standing by.<br>Chat activates once a ticket is created.</div>
+                        </div>
+                    </div>
+                    <div class="chat-input-row">
+                        <textarea class="chat-input" id="user-input" placeholder="Type your message..." rows="1" disabled maxlength="500"></textarea>
+                        <button class="chat-send" id="user-send" disabled>Send ↵</button>
+                    </div>
+                </div>
+
+                <!-- DEVELOPER CHAT -->
+                <div class="chat-pane">
+                    <div class="chat-header chat-header-dev">
+                        <span style="font-size:1rem">🔧</span>
+                        <span class="chat-header-title">Developer Chat</span>
+                        <span class="chat-pill pill-idle" id="dev-chat-pill">Standby</span>
+                        <span id="dev-warp-badge"></span>
+                    </div>
+                    <div class="chat-messages" id="dev-messages">
+                        <div class="chat-placeholder" id="dev-placeholder">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                            <div>Engineer console inactive.<br>Activates on ticket escalation.</div>
+                        </div>
+                    </div>
+                    <div class="slash-hint" id="slash-hint" style="display:none">Slash: /snapshot /similar /kb /resolve &lt;cause&gt; /escalate</div>
+                    <div class="chat-input-row">
+                        <textarea class="chat-input dev-input" id="dev-input" placeholder="Type debug query or /command..." rows="1" disabled maxlength="500"></textarea>
+                        <button class="chat-send dev-send" id="dev-send" disabled>Send ↵</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <section class="dash-grid">
+            <div class="card">
+                <div class="section-title">Knowledge Base</div>
+                <div id="kb-list" style="display:flex; flex-direction:column; gap:0.75rem"></div>
+            </div>
+            <div class="card">
+                <div class="section-title">Insights Summary</div>
+                <div class="dash-grid" style="margin-top:0; grid-template-columns:repeat(2, 1fr); gap:1rem">
+                    <div class="stat-card"><span class="stat-num" id="s-total">3</span><span class="stat-txt">Total Tickets</span></div>
+                    <div class="stat-card"><span class="stat-num" id="s-rate">66%</span><span class="stat-txt">Success Rate</span></div>
+                </div>
+                <div style="margin-top:1.5rem">
+                    <div style="font-size:0.65rem; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:0.75rem">Top Trends</div>
+                    <ul id="trend-list" style="padding-left:1rem; font-size:0.8rem; color:#94a3b8"></ul>
+                </div>
+            </div>
+            <div class="card">
+                <div class="section-title">Current State</div>
+                <div id="state-json" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--accent); background:rgba(0,0,0,0.2); padding:1rem; border-radius:8px; height:180px; overflow-y:auto"></div>
+            </div>
+        </section>
+
     </div>
 
-    <div class="group">
-      <div class="group-label">JSON</div>
-      <div class="group-buttons">
-        <button data-tool="json_format">Format</button>
-        <button data-tool="json_format" data-args='{"mode":"minify"}'>Minify</button>
-        <button data-tool="json_format" data-args='{"mode":"validate"}'>Validate</button>
-      </div>
-    </div>
+    <script>
+        const WORKER_URL = '';
+        const state = { tickets: [], kb: [] };
 
-    <div class="group">
-      <div class="group-label">Encode / Decode</div>
-      <div class="group-buttons">
-        <button data-tool="base64" data-args='{"mode":"encode"}'>Base64 encode</button>
-        <button data-tool="base64" data-args='{"mode":"decode"}'>Base64 decode</button>
-        <button data-tool="url_encode" data-args='{"mode":"encode"}'>URL encode</button>
-        <button data-tool="url_encode" data-args='{"mode":"decode"}'>URL decode</button>
-      </div>
-    </div>
+        const updateStateUI = async () => {
+            document.getElementById('live-stamp').textContent = Date.now();
+            document.getElementById('state-json').textContent = JSON.stringify(state, null, 2);
+            document.getElementById('kb-list').innerHTML = state.kb.slice().reverse().map(k => `
+                <div style="padding:0.75rem; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:6px">
+                    <div style="font-weight:700; font-size:0.8rem; margin-bottom:0.2rem">${k.title}</div>
+                    <div style="font-size:0.7rem; color:#64748b">${k.res.substring(0,60)}...</div>
+                </div>
+            `).join('');
+            
+            try {
+                const req = await fetch(`${WORKER_URL}/tools/generate_insights`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ window_days: 7 })
+                });
+                const res = await req.json();
+                if (res.total_tickets !== undefined) {
+                    document.getElementById('s-total').textContent = res.total_tickets;
+                    if (document.getElementById('s-rate')) {
+                        document.getElementById('s-rate').textContent = res.resolution_rate;
+                    }
+                    if (res.insights && res.insights.length > 0) {
+                        document.getElementById('trend-list').innerHTML = res.insights.map(i => `<li>${i}</li>`).join('');
+                    } else {
+                        document.getElementById('trend-list').innerHTML = `<li>Processing data...</li>`;
+                    }
+                } else {
+                    document.getElementById('s-total').textContent = state.tickets.length;
+                }
+            } catch (e) {
+                document.getElementById('s-total').textContent = state.tickets.length;
+            }
+        };
 
-    <div class="group">
-      <div class="group-label">Hash</div>
-      <div class="group-buttons">
-        <button data-tool="hash">SHA-256</button>
-        <button data-tool="hash" data-args='{"algorithm":"SHA-1"}'>SHA-1</button>
-        <button data-tool="hash" data-args='{"algorithm":"SHA-384"}'>SHA-384</button>
-        <button data-tool="hash" data-args='{"algorithm":"SHA-512"}'>SHA-512</button>
-      </div>
-    </div>
+        const step = async (id, status = 'active') => {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            el.classList.remove('active', 'complete');
+            if (status) el.classList.add(status);
+            await new Promise(r => setTimeout(r, 1200 + Math.random()*800));
+            if (status === 'active') el.classList.replace('active', 'complete');
+        };
 
-    <div class="group">
-      <div class="group-label">Generate</div>
-      <div class="group-buttons">
-        <button data-tool="uuid">UUID</button>
-        <button data-tool="uuid" data-args='{"count":5}'>5 UUIDs</button>
-        <button data-tool="timestamp">Now</button>
-        <button data-tool="timestamp" data-label="parse">Parse timestamp</button>
-      </div>
-    </div>
+        const startTimer = (h) => {
+            let s = h * 30; // Speed up: 30s per hour
+            const max = s;
+            const t = setInterval(() => {
+                s--;
+                if (s <= 0) clearInterval(t);
+                const hrs = Math.floor(s/3600), mins = Math.floor((s%3600)/60), secs = s%60;
+                document.getElementById('sla-countdown').textContent = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                document.getElementById('sla-fill').style.width = `${(s/max)*100}%`;
+                if (s/max < 0.2) document.getElementById('sla-fill').style.background = 'var(--error)';
+            }, 1000);
+        };
 
-    <div class="group">
-      <div class="group-label">Platform (via ctx.construct)</div>
-      <div class="group-buttons">
-        <button
-          data-tool="send_notification"
-          data-args='{"title":"Hello from Text Tools","body":"This notification was sent via the platform.","variant":"info"}'
-          data-skip-input>
-          Send test notification
-        </button>
-        <button
-          data-tool="send_notification"
-          data-args='{"title":"All set","body":"Your task finished successfully.","variant":"success"}'
-          data-skip-input>
-          Success notification
-        </button>
-        <button
-          data-tool="list_upcoming_events"
-          data-args='{"days":7,"max_results":5}'
-          data-skip-input>
-          Upcoming events (7d)
-        </button>
-        <button
-          data-tool="list_upcoming_events"
-          data-args='{"days":1,"max_results":10}'
-          data-skip-input>
-          Today
-        </button>
-      </div>
-    </div>
+        async function resolve() {
+            document.getElementById('btn-resolve').innerHTML = "PROCESSING KB...";
+            await step(8);
+            state.kb.push({ title: "Resolution for " + document.getElementById('tkt-id').textContent, res: "Automated fix applied. Database locks released. Service verified." });
+            await step(9);
+            const id = document.getElementById('tkt-id').textContent;
+            state.tickets.push({ id, cat: "BUG", pri: "P0", status: "Resolved", title: document.getElementById('tkt-title').textContent });
+            document.getElementById('btn-resolve').innerHTML = "✓ RESOLVED";
+            document.getElementById('btn-resolve').style.background = "#22c55e22";
+            document.getElementById('btn-resolve').style.color = "var(--success)";
+            document.getElementById('stat-badge').textContent = "RESOLVED";
+            document.getElementById('stat-badge').style.color = "var(--success)";
+            updateStateUI();
+        }
 
-    <div class="label">Output</div>
-    <div id="output" class="output">—</div>
+        document.getElementById('btn-resolve').onclick = resolve;
+        updateStateUI();
 
-    <script src="app.js"></script>
-  </body>
+        // ================================================================
+        // DUAL CHAT SYSTEM
+        // ================================================================
+
+        const chatState = {
+            ticketId: null, ticketData: null,
+            user: { history: [], isTyping: false, escalateCount: 0 },
+            dev:  { history: [], isTyping: false, warpActive: false }
+        };
+
+        // Pre-seed demo history for TKT-0003
+        const DEMO_USER_HISTORY = [
+            { role: 'aegis', text: "Hi! I've logged your billing issue as TKT-0003. Our team will review your April invoice within 24 hours.", ts: '09:01' },
+            { role: 'user',  text: "I was charged twice this month, this is really frustrating", ts: '09:15', sentiment: 'frustrated' },
+            { role: 'aegis', text: "I completely understand your frustration — being double charged is unacceptable and we take this seriously. I've flagged this as high priority and an engineer will review your account charges today.", ts: '09:15', sentiment: 'frustrated' }
+        ];
+
+        const DEMO_DEV_HISTORY = [
+            { role: 'aegis', text: "Ticket TKT-0003 escalated — BILLING/P2. User reports double charge on April invoice.\n\nProbable cause: Duplicate Stripe webhook on plan renewal. Similar to TKT-0001 (Mar 2026).\n\nRecommended steps:\n1. Check Stripe for duplicate charge_succeeded events\n2. Query: SELECT * FROM billing_events WHERE user_id='U_DEMO_001' AND month='2026-04'\n3. Issue refund via Stripe dashboard if confirmed.", ts: '09:02' }
+        ];
+
+        // ---- Rendering helpers ----
+        function fmtTime() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderMarkdown(text) {
+            return text
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/g, '<code style="background:#1a2a1a; padding:1px 4px; border-radius:3px; color:#4ade80">$1</code>')
+                .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function appendMsg(pane, role, text, opts = {}) {
+            const container = document.getElementById(pane === 'user' ? 'user-messages' : 'dev-messages');
+            const ph = document.getElementById(pane === 'user' ? 'user-placeholder' : 'dev-placeholder');
+            if (ph) ph.remove();
+
+            const isUser = role === 'user' || role === 'dev';
+            const isUserPane = pane === 'user';
+            const row = document.createElement('div');
+            row.className = `msg-row${isUser ? ' mine' : ''}`;
+
+            let avatarClass, bubbleClass, initials;
+            if (role === 'aegis') {
+                avatarClass = isUserPane ? 'avatar-aegis-user' : 'avatar-aegis-dev';
+                bubbleClass = isUserPane ? 'bubble-aegis-user' : 'bubble-aegis-dev';
+                initials    = isUserPane ? 'AE' : '⚙';
+            } else if (role === 'user') {
+                avatarClass = 'avatar-user'; bubbleClass = 'bubble-user'; initials = 'U';
+            } else {
+                avatarClass = 'avatar-dev'; bubbleClass = 'bubble-dev'; initials = 'DEV';
+            }
+
+            const bubbleEl = document.createElement('div');
+            bubbleEl.className = `msg-bubble ${bubbleClass}`;
+            if (pane === 'dev' && role === 'aegis') {
+                bubbleEl.innerHTML = renderMarkdown(text);
+            } else {
+                bubbleEl.textContent = text;
+            }
+
+            const meta = document.createElement('div');
+            meta.className = 'msg-ts';
+            meta.textContent = opts.ts || fmtTime();
+
+            const inner = document.createElement('div');
+            inner.style.maxWidth = '80%';
+            if (!isUser) inner.appendChild(bubbleEl);
+            inner.appendChild(meta);
+            if (isUser) { inner.insertBefore(bubbleEl, inner.firstChild); }
+
+            const avatar = document.createElement('div');
+            avatar.className = `msg-avatar ${avatarClass}`;
+            avatar.textContent = initials;
+
+            row.appendChild(isUser ? inner : avatar);
+            row.appendChild(isUser ? avatar : inner);
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping(pane) {
+            const container = document.getElementById(pane === 'user' ? 'user-messages' : 'dev-messages');
+            const el = document.createElement('div');
+            el.className = 'msg-row';
+            el.id = `typing-${pane}`;
+            const isDev = pane === 'dev';
+            el.innerHTML = `<div class="msg-avatar ${isDev ? 'avatar-aegis-dev' : 'avatar-aegis-user'}">${isDev ? '⚙' : 'AE'}</div>
+                <div class="typing-indicator">
+                    <div class="typing-dot${isDev ? ' typing-dot-dev' : ''}"></div>
+                    <div class="typing-dot${isDev ? ' typing-dot-dev' : ''}"></div>
+                    <div class="typing-dot${isDev ? ' typing-dot-dev' : ''}"></div>
+                </div>`;
+            container.appendChild(el);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideTyping(pane) {
+            const el = document.getElementById(`typing-${pane}`);
+            if (el) el.remove();
+        }
+
+        function updateSentimentBadge(sentiment) {
+            const b = document.getElementById('user-sentiment-badge');
+            const map = { positive: ['👍 Positive', 'sent-positive'], neutral: ['😐 Neutral', 'sent-neutral'],
+                          frustrated: ['😤 Frustrated', 'sent-frustrated'], angry: ['😠 Angry', 'sent-angry'] };
+            const [label, cls] = map[sentiment] || map.neutral;
+            b.innerHTML = `<span class="sentiment-badge ${cls}">${label}</span>`;
+        }
+
+        // ---- AI Engine (Worker-powered) ----
+        async function userChatAI(userMsg) {
+            const ticket = chatState.ticketData || {};
+            const history = chatState.user.history.slice(-6);
+            try {
+                const res = await fetch(`${WORKER_URL}/tools/user_chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket, history, message: userMsg })
+                });
+                if (!res.ok) throw new Error('Worker error');
+                return await res.json();
+            } catch(e) {
+                return { reply: `I've noted your message for ticket ${ticket.id||''}. Our team is actively looking into this and will update you shortly.`, resolved_flag: false, escalate_flag: false, sentiment: 'neutral' };
+            }
+        }
+
+        async function devChatAI(devMsg) {
+            const ticket = chatState.ticketData || {};
+            const history = chatState.dev.history.slice(-6);
+            try {
+                const res = await fetch(`${WORKER_URL}/tools/dev_chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket, history, message: devMsg })
+                });
+                if (!res.ok) throw new Error('Worker error');
+                return await res.json();
+            } catch(e) {
+                return { reply: `Noted. Network error communicating with Worker.`, resolved_flag: false, kb_update: false };
+            }
+        }
+
+        // ---- Cross-chat events ----
+        function crossChatEvent(type) {
+            if (type === 'resolved') {
+                appendMsg('user', 'aegis', `Great news! Your issue (${chatState.ticketData?.id}) has been resolved. Here's what we found: root cause identified and KB updated. Please let me know if it happens again.`);
+                appendMsg('dev', 'aegis', `Ticket closed. KB updated. Stage 9 insights triggered.`);
+                document.getElementById('stat-badge').textContent = 'RESOLVED';
+                document.getElementById('stat-badge').style.color = 'var(--success)';
+                resolve();
+            } else if (type === 'escalated-l3') {
+                appendMsg('user', 'aegis', `Your issue has been escalated to our engineering lead. This is our highest priority — you'll hear back very soon.`);
+            } else if (type === 'user-frustrated') {
+                appendMsg('dev', 'aegis', `⚠ User frustration detected — ticket escalated by AEGIS. Consider proactive outreach.`);
+            }
+        }
+
+        // ---- Send handlers ----
+        async function sendUserMessage() {
+            const input = document.getElementById('user-input');
+            const text = input.value.trim();
+            if (!text || chatState.user.isTyping) return;
+            input.value = '';
+            chatState.user.isTyping = true;
+            document.getElementById('user-send').disabled = true;
+
+            appendMsg('user', 'user', text);
+            chatState.user.history.push({ role: 'user', text });
+
+            showTyping('user');
+            await new Promise(r => setTimeout(r, 1000 + Math.random() * 800));
+            const result = await userChatAI(text);
+            hideTyping('user');
+
+            appendMsg('user', 'aegis', result.reply);
+            chatState.user.history.push({ role: 'aegis', text: result.reply });
+
+            updateSentimentBadge(result.sentiment);
+            if (result.sentiment === 'angry') {
+                const pb = document.getElementById('pri-badge');
+                pb.title = 'Priority bumped: angry user sentiment detected';
+            }
+            if (result.escalate_flag) crossChatEvent('user-frustrated');
+            if (result.resolved_flag) setTimeout(() => crossChatEvent('resolved'), 800);
+
+            chatState.user.isTyping = false;
+            document.getElementById('user-send').disabled = false;
+        }
+
+        async function sendDevMessage() {
+            const input = document.getElementById('dev-input');
+            const text = input.value.trim();
+            if (!text || chatState.dev.isTyping) return;
+            input.value = '';
+            chatState.dev.isTyping = true;
+            document.getElementById('dev-send').disabled = true;
+
+            appendMsg('dev', 'dev', text);
+            chatState.dev.history.push({ role: 'dev', text });
+
+            showTyping('dev');
+            await new Promise(r => setTimeout(r, 900 + Math.random() * 700));
+            const result = await devChatAI(text);
+            hideTyping('dev');
+
+            appendMsg('dev', 'aegis', result.reply);
+            chatState.dev.history.push({ role: 'aegis', text: result.reply });
+
+            if (result.kb_update && result.kb_resolution_text) {
+                state.kb.push({ topic: chatState.ticketData?.cat?.toLowerCase() || 'general', title: `Dev Resolution: ${chatState.ticketData?.id}`, res: result.kb_resolution_text });
+                updateStateUI();
+                setTimeout(() => crossChatEvent('resolved'), 600);
+            } else if (result.resolved_flag && !result.kb_update) {
+                //  wait for root cause follow-up
+            }
+
+            chatState.dev.isTyping = false;
+            document.getElementById('dev-send').disabled = false;
+        }
+
+        // ---- Keyboard shortcuts ----
+        document.getElementById('user-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
+        });
+        document.getElementById('dev-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDevMessage(); }
+        });
+        document.getElementById('user-send').onclick = sendUserMessage;
+        document.getElementById('dev-send').onclick = sendDevMessage;
+
+        // ---- Activate chats when ticket created (called from pipeline) ----
+        function activateChats(ticketData) {
+            chatState.ticketId = ticketData.id;
+            chatState.ticketData = ticketData;
+
+            document.getElementById('chat-ticket-tag').textContent = ticketData.id;
+
+            // Enable inputs
+            ['user-input','user-send','dev-input','dev-send'].forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = false;
+            });
+            document.getElementById('slash-hint').style.display = 'block';
+
+            // Mark User Chat live
+            const up = document.getElementById('user-chat-pill');
+            up.textContent = 'LIVE'; up.className = 'chat-pill pill-live';
+
+            // Seed user chat with opening message
+            appendMsg('user', 'aegis', `Hi! I've logged your issue as ${ticketData.id}. Our team is on it. Expected response within ${ticketData.sla || '4'} hours. Feel free to ask me anything!`);
+
+            // Dev chat opens on escalation (called from runPipeline via activateDevChat)
+        }
+
+        function activateDevChat(ticketData, probableCause, steps) {
+            chatState.dev.warpActive = true;
+            const dp = document.getElementById('dev-chat-pill');
+            dp.textContent = 'ESCALATED'; dp.className = 'chat-pill pill-esc';
+            document.getElementById('dev-warp-badge').innerHTML = '<span class="chat-pill" style="background:rgba(168,85,247,0.15); color:var(--cat-feature)">⚡ Warp Active</span>';
+
+            const stepsText = steps.map((s, i) => `${i+1}. ${s}`).join('\n');
+            const openingMsg = `Ticket ${ticketData.id} escalated to you.\n\nPriority: ${ticketData.pri} | Category: ${ticketData.cat} | SLA: ${ticketData.sla || '1'} hr\nOriginal: "${ticketData.title}"\nUser: U_DEMO_99 — 1 open ticket this session.\n\nAI Probable Cause: ${probableCause}\nMost similar: TKT-0001 — "API key reset 500"\n\nRecommended steps:\n${stepsText}\n\nFull Warp-Speed Debug snapshot attached. Type any debug query and I'll assist. Try /snapshot, /similar, /kb.`;
+
+            appendMsg('dev', 'aegis', openingMsg);
+        }
+
+        // ---- Demo seed removed, starts clean ----
+        function loadDemoChats() {
+            // Dashboard starts clean. User can trigger the pipeline manually.
+        }
+
+        // ---- AI-Powered Pipeline (Worker-backed) ----
+        const runPipeline = async () => {
+            const msg = document.getElementById('main-input').value.trim();
+            if (!msg) return;
+            document.getElementById('btn-run').disabled = true;
+            document.getElementById('work-grid').classList.remove('hidden');
+            const priColors = {P0:'var(--p0)',P1:'var(--p1)',P2:'var(--p2)',P3:'var(--p3)'};
+            try {
+                // STAGE 1 — Ingest
+                await step(1);
+                document.getElementById('tkt-body').textContent = msg.substring(0, 150) + "...";
+
+                // STAGE 2 — Dedupe
+                await step(2);
+                const s2Req = await fetch(`${WORKER_URL}/tools/check_duplicate`, {
+                    method: 'POST', body: JSON.stringify({ text: msg }), headers: { 'Content-Type': 'application/json' }
+                });
+                const s2 = await s2Req.json();
+                if (s2.is_duplicate) {
+                    alert(`Duplicate detected: ${s2.existing_ticket_id}`);
+                    document.getElementById('btn-run').disabled = false;
+                    return;
+                }
+
+                // STAGE 3 — Classify
+                await step(3);
+                const s3Req = await fetch(`${WORKER_URL}/tools/classify_message`, {
+                    method: 'POST', body: JSON.stringify({ text: msg }), headers: { 'Content-Type': 'application/json' }
+                });
+                const s3 = await s3Req.json();
+                document.getElementById('pri-badge').textContent = s3.priority;
+                document.getElementById('pri-badge').style.color = priColors[s3.priority]||'#fff';
+                document.getElementById('cat-badge').textContent = s3.category;
+                document.getElementById('tkt-box').style.borderTop = `4px solid ${priColors[s3.priority]||'#fff'}`;
+
+                // STAGE 4 — Ticket
+                await step(4);
+                // We mock user/channel details in dashboard mode
+                const s4Req = await fetch(`${WORKER_URL}/tools/create_ticket`, {
+                    method: 'POST', body: JSON.stringify({
+                        message: msg, category: s3.category, priority: s3.priority,
+                        user_id: 'U_DEMO_99', channel: 'C_SUPPORT', ts: Date.now().toString()
+                    }), headers: { 'Content-Type': 'application/json' }
+                });
+                const s4 = await s4Req.json();
+                document.getElementById('tkt-id').textContent = s4.ticket_id;
+                document.getElementById('tkt-title').textContent = `${s3.category} Report (${s3.priority})`;
+                startTimer(s4.sla_hours || 4);
+                
+                const ticketData = {id: s4.ticket_id, cat: s3.category, pri: s3.priority, status: 'Open', title: 'Support Ticket', sla: String(s4.sla_hours || 4)};
+                state.tickets.push(ticketData);
+                activateChats(ticketData);
+
+                // STAGE 5 — RAG Reply
+                await step(5);
+                const s5Req = await fetch(`${WORKER_URL}/tools/thread_reply`, {
+                    method: 'POST', body: JSON.stringify({
+                        channel: 'C_SUPPORT', thread_ts: '1234', ticket_id: s4.ticket_id, category: s3.category, message: msg
+                    }), headers: { 'Content-Type': 'application/json' }
+                });
+                const s5 = await s5Req.json();
+                document.getElementById('reply-bubble').classList.remove('hidden');
+                document.getElementById('reply-txt').textContent = s5.reply_sent || "Reply generated and sent.";
+                document.getElementById('reply-meta').innerHTML = `<span class="badge" style="background:rgba(34,197,94,0.1);color:var(--success);font-size:0.6rem">GROUNDED VIA WORKER</span>`;
+
+                // STAGE 6 & 7 — Escalation & Debug
+                await step(6);
+                if (s3.priority === 'P0' || s3.priority === 'P1') {
+                    document.getElementById('escalation-alert').classList.remove('hidden');
+                    document.getElementById('escalation-alert').querySelector('span:last-child') && (document.getElementById('escalation-alert').lastChild.textContent = ` ESCALATED → oncall-alerts`);
+                    
+                    await step(7);
+                    document.getElementById('debug-panel').classList.remove('hidden');
+                    document.getElementById('debug-cause').textContent = "P0/P1 ticket escalated automatically by pipeline.";
+                    document.getElementById('debug-steps').innerHTML = "<li>Review Slack alerts</li><li>Engage engineering team</li>";
+                    activateDevChat(ticketData, "P0/P1 ticket auto-escalation", ["Review Slack alerts", "Check active monitoring dashboards"]);
+                    
+                    // Escalate in background
+                    fetch(`${WORKER_URL}/tools/escalate_unresolved`, {
+                        method: 'POST', body: JSON.stringify({ ticket_id: s4.ticket_id, reason: 'P0/P1 Pipeline Auto-Escalation' }), headers: { 'Content-Type': 'application/json' }
+                    }).catch(e=>console.warn(e));
+                }
+
+                document.getElementById('btn-resolve').style.display = 'block';
+                updateStateUI();
+            } catch(err) {
+                console.error('Pipeline error:', err);
+                document.getElementById('btn-run').disabled = false;
+                document.getElementById('tkt-title').textContent = '⚠ ' + err.message;
+                document.getElementById('tkt-body').textContent = 'Fix the error above and try again.';
+            }
+        };
+
+        document.getElementById('btn-run').onclick = runPipeline;
+
+        // Load demo seed on startup
+        loadDemoChats();
+
+    </script>
+</body>
 </html>
