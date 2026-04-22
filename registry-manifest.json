@@ -1,0 +1,106 @@
+{
+  "name": "aegis-support-triage",
+  "display_name": "AEGIS — Autonomous Support Triage",
+  "version": "1.0.0",
+  "description": "Autonomous Slack support operations agent. Monitors #support, classifies every message by type and urgency, checks for duplicates, creates Notion tickets, replies in-thread with RAG-grounded answers, escalates P0/P1 tickets to on-call engineers, and flags tickets unresolved after 24 hours — all without human intervention.",
+  "category": "productivity",
+  "trigger_type": "event-driven",
+  "trigger_detail": "New message posted in #support-general Slack channel",
+  "deployed_url": "https://aegis-app.shubhamvelip4.workers.dev",
+  "manifest_endpoint": "https://aegis-app.shubhamvelip4.workers.dev/manifest",
+  "runtime": "cloudflare-workers",
+  "tools": [
+    {
+      "name": "read_support_message",
+      "endpoint": "/tools/read_support_message",
+      "method": "POST",
+      "description": "Reads recent messages from a Slack support channel",
+      "input_schema": {
+        "channel": { "type": "string", "required": true, "description": "Slack channel ID" },
+        "limit":   { "type": "number", "required": false, "default": 10 }
+      }
+    },
+    {
+      "name": "classify_message",
+      "endpoint": "/tools/classify_message",
+      "method": "POST",
+      "description": "Classifies a support message by category and priority using Gemini 2.0 Flash",
+      "input_schema": {
+        "text": { "type": "string", "required": true, "description": "Raw support message text" }
+      },
+      "output_schema": {
+        "category":   { "type": "string", "enum": ["BUG", "QUERY", "FEATURE", "BILLING"] },
+        "priority":   { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
+        "confidence": { "type": "number" }
+      }
+    },
+    {
+      "name": "check_duplicate",
+      "endpoint": "/tools/check_duplicate",
+      "method": "POST",
+      "description": "Checks if a message matches an already-open ticket in D1",
+      "input_schema": {
+        "text": { "type": "string", "required": true }
+      },
+      "output_schema": {
+        "is_duplicate":           { "type": "boolean" },
+        "existing_ticket_id":     { "type": "string", "nullable": true },
+        "existing_ticket_status": { "type": "string", "nullable": true }
+      }
+    },
+    {
+      "name": "create_ticket",
+      "endpoint": "/tools/create_ticket",
+      "method": "POST",
+      "description": "Creates a support ticket in Cloudflare D1 and mirrors it to Notion",
+      "input_schema": {
+        "message":  { "type": "string", "required": true },
+        "user_id":  { "type": "string", "required": true },
+        "channel":  { "type": "string", "required": true },
+        "ts":       { "type": "string", "required": true },
+        "category": { "type": "string", "required": true },
+        "priority": { "type": "string", "required": true }
+      },
+      "output_schema": {
+        "ticket_id": { "type": "string" },
+        "sla_hours": { "type": "number" }
+      }
+    },
+    {
+      "name": "thread_reply",
+      "endpoint": "/tools/thread_reply",
+      "method": "POST",
+      "description": "Posts an AI-generated RAG-grounded reply into the user's original Slack thread",
+      "input_schema": {
+        "channel":   { "type": "string", "required": true },
+        "thread_ts": { "type": "string", "required": true },
+        "ticket_id": { "type": "string", "required": true },
+        "category":  { "type": "string", "required": true },
+        "message":   { "type": "string", "required": true }
+      }
+    },
+    {
+      "name": "escalate_unresolved",
+      "endpoint": "/tools/escalate_unresolved",
+      "method": "POST",
+      "description": "Escalates a specific ticket immediately, or runs the 24h stale ticket check",
+      "input_schema": {
+        "ticket_id": { "type": "string", "required": false, "description": "Specific ticket to escalate. If omitted, runs stale check for all open tickets." },
+        "reason":    { "type": "string", "required": false }
+      }
+    }
+  ],
+  "auth": {
+    "type": "env_vars",
+    "required": [
+      { "key": "SLACK_BOT_TOKEN",  "description": "Slack Bot OAuth token (xoxb-...)" },
+      { "key": "NOTION_TOKEN",     "description": "Notion integration token (ntn_...)" },
+      { "key": "NOTION_DB_ID",     "description": "Notion database ID for ticket storage" },
+      { "key": "GEMINI_API_KEY",   "description": "Google Gemini API key for classification" }
+    ]
+  },
+  "constructs_used": ["cloudflare-d1", "cloudflare-cron", "slack-events-api", "notion-api", "gemini-2.0-flash"],
+  "author": "shubhamvelip4",
+  "repo": "https://github.com/shubhamvelip4/aegis-app",
+  "license": "MIT"
+}

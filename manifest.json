@@ -1,27 +1,18 @@
 {
-  "$schema": "https://registry.construct.computer/schemas/manifest.json",
-  "name": "Text Tools",
-  "description": "Handy text utilities plus a demo of calling platform tools (notifications, calendar) from an app.",
-  "author": {
-    "name": "Construct",
-    "url": "https://github.com/construct-computer"
-  },
-  "owners": ["construct-computer"],
+  "$schema": "https://raw.githubusercontent.com/construct-computer/app-sdk/main/schemas/manifest.schema.json",
+  "name": "AEGIS",
+  "description": "Autonomous Support Operations Agent — transforms Slack conversations into structured, resolved workflows.",
+  "author": { "name": "Your Name", "url": "https://github.com/you" },
+  "owners": ["your-github-login"],
   "icon": "ui/icon.svg",
-  "categories": ["utilities"],
-  "tags": ["text", "encoding", "example", "demo", "gateway"],
+  "categories": ["integrations"],
+  "tags": ["slack", "support", "automation", "ai", "tickets"],
   "ui": {
     "entry": "ui/index.html",
-    "width": 720,
-    "height": 640
+    "width": 1000,
+    "height": 700
   },
   "permissions": {
-    "storage": "64KB",
-    "uses": {
-      "tools": [
-        "notify.send",
-        "calendar.list_events"
-      ]
-    }
+    "network": ["slack.com", "api.notion.com", "*.workers.dev", "generativelanguage.googleapis.com"]
   }
 }
